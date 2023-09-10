@@ -1,44 +1,30 @@
 package services
 
 import (
-	"fmt"
-	"math/rand"
-	"sync"
 	"testing"
-	"time"
 )
 
-const (
-	numOperations = 100000000
-	numConcurrent = 50
-	maxKey        = 100000
-)
+func TestInsertReadDelete(t *testing.T) {
+	// Create a new Store
+	store := NewLockedMapStore[int64]()
 
-func TestConcurrentOperationsWithThroughputReport(t *testing.T) {
-	store := NewStore[int64](numConcurrent)
+	// Insert a key-value pair
+	key := int64(42)
+	value := int64(84)
+	store.Put(key, value)
 
-	var wg sync.WaitGroup
-	rand.Seed(time.Now().UnixNano())
-
-	startTime := time.Now()
-
-	for i := 0; i < numConcurrent; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for j := 0; j < numOperations; j++ {
-				key := int64(rand.Intn(maxKey))
-				value := key * 2
-				store.Put(key, value)
-			}
-		}()
+	// Read the key for the value
+	result, ok := store.Get(key)
+	if !ok || result != value {
+		t.Errorf("Expected value %d for key %d, but got %d", value, key, result)
 	}
 
-	wg.Wait()
-	opsCounter := numOperations * numConcurrent
+	// Delete the key
+	store.Delete(key)
 
-	elapsed := time.Since(startTime)
-	opsPerMillisecond := float64(opsCounter) / float64(elapsed.Milliseconds())
-	fmt.Printf("Operations: %d, Elapsed Time: %s, Ops/ms: %.2f", opsCounter, elapsed, opsPerMillisecond)
-
+	// Read again and validate it's empty
+	result, ok = store.Get(key)
+	if ok {
+		t.Errorf("Expected key %d to be empty after deletion, but got value %d (ok: %v)", key, result, ok)
+	}
 }

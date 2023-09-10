@@ -7,7 +7,7 @@ import (
 
 type Cache[V any] struct {
 	config CacheConfig
-	stores []services.Store[V]
+	stores []services.LockedMapStore[V]
 }
 
 func (c *Cache[V]) Get(key []byte) (V, bool) {
@@ -25,7 +25,7 @@ func (c *Cache[V]) Delete(key []byte) {
 func NewCache[V any](config CacheConfig) entities.AnimeCache[V] {
 	cache := &Cache[V]{
 		config: config,
-		stores: make([]services.Store[V], config.MaxShards),
+		stores: make([]services.LockedMapStore[V], config.MaxShards),
 	}
 
 	return cache
