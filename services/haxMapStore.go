@@ -1,36 +1,31 @@
 package services
 
-// type haxMapStore[V any] struct {
-// 	store
-// }
+import (
+	"animecache/entities"
 
-// func (c *haxMapStore[V]) Get(key int64) (V, bool) {
+	"github.com/alphadose/haxmap"
+)
 
-// 	c.mutex.Lock()
-// 	value, ok := c.hashMap[key]
-// 	c.mutex.Unlock()
+type haxMapStore[V any] struct {
+	store *haxmap.Map[int64, V]
+}
 
-// 	return value, ok
-// }
+func (c *haxMapStore[V]) Get(key int64) (V, bool) {
+	value, ok := c.store.Get(key)
+	return value, ok
+}
 
-// func (c *haxMapStore[V]) Put(key int64, value V) {
+func (c *haxMapStore[V]) Put(key int64, value V) {
+	c.store.Set(key, value)
+}
+func (c *haxMapStore[V]) Delete(key int64) {
+	c.store.Del(key)
+}
 
-// 	c.mutex.Lock()
-// 	c.hashMap[key] = value
-// 	c.mutex.Unlock()
-// }
-// func (c *haxMapStore[V]) Delete(key int64) {
+func NewHaxMapStore[V any](size int) entities.Store[V] {
+	store := &haxMapStore[V]{
+		store: haxmap.New[int64, V](uintptr(size)),
+	}
 
-// 	c.mutex.Lock()
-// 	delete(c.hashMap, key)
-// 	c.mutex.Unlock()
-
-// }
-
-// func NewHaxMapStore[V any](operationBufferSize int, lockOsThreads bool) entities.Store[V] {
-// 	store := &LockedMapStore[V]{
-// 		hashMap: make(map[int64]V),
-// 	}
-
-// 	return store
-// }
+	return store
+}

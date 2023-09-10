@@ -63,8 +63,8 @@ func BenchmarkWriteOperations(t *testing.B) {
 	}
 
 	const (
-		numOperations = 20000
-		numConcurrent = 25000
+		numOperations = 2000
+		numConcurrent = 2500
 		maxKey        = 100000
 	)
 	storeTestList := []struct {
@@ -83,6 +83,17 @@ func BenchmarkWriteOperations(t *testing.B) {
 				}
 			},
 		},
+		{
+			storeName: "HaxMapStore",
+			store:     NewHaxMapStore[*DeeplyNestedLargeStruct](numOperations),
+			runner: func(wg *sync.WaitGroup, store entities.Store[*DeeplyNestedLargeStruct]) {
+				defer wg.Done()
+				for j := 0; j < numOperations; j++ {
+					key := int64(rand.Intn(maxKey))
+					store.Put(key, &large)
+				}
+			},
+		},
 	}
 
 	storeTestList2 := []struct {
@@ -93,6 +104,17 @@ func BenchmarkWriteOperations(t *testing.B) {
 		{
 			storeName: "LockedMapStore",
 			store:     NewLockedMapStore[DeeplyNestedLargeStruct](),
+			runner: func(wg *sync.WaitGroup, store entities.Store[DeeplyNestedLargeStruct]) {
+				defer wg.Done()
+				for j := 0; j < numOperations; j++ {
+					key := int64(rand.Intn(maxKey))
+					store.Put(key, large)
+				}
+			},
+		},
+		{
+			storeName: "HaxMapStore",
+			store:     NewHaxMapStore[DeeplyNestedLargeStruct](numOperations),
 			runner: func(wg *sync.WaitGroup, store entities.Store[DeeplyNestedLargeStruct]) {
 				defer wg.Done()
 				for j := 0; j < numOperations; j++ {
@@ -218,8 +240,8 @@ func BenchmarkReadWriteOperations(t *testing.B) {
 	}
 
 	const (
-		numOperations = 20000
-		numConcurrent = 25000
+		numOperations = 2000
+		numConcurrent = 2500
 		maxKey        = 100000
 	)
 
@@ -247,6 +269,24 @@ func BenchmarkReadWriteOperations(t *testing.B) {
 				}
 			},
 		},
+		{
+			storeName: "HaxMapStore",
+			store:     NewHaxMapStore[DeeplyNestedLargeStruct](numOperations),
+			reader: func(wg *sync.WaitGroup, store entities.Store[DeeplyNestedLargeStruct]) {
+				defer wg.Done()
+				for j := 0; j < numOperations; j++ {
+					key := int64(rand.Intn(maxKey))
+					store.Put(key, large)
+				}
+			},
+			writer: func(wg *sync.WaitGroup, store entities.Store[DeeplyNestedLargeStruct]) {
+				defer wg.Done()
+				for j := 0; j < numOperations; j++ {
+					key := int64(rand.Intn(maxKey))
+					store.Get(key)
+				}
+			},
+		},
 	}
 
 	storeTestList2 := []struct {
@@ -258,6 +298,24 @@ func BenchmarkReadWriteOperations(t *testing.B) {
 		{
 			storeName: "LockedMapStore",
 			store:     NewLockedMapStore[*DeeplyNestedLargeStruct](),
+			reader: func(wg *sync.WaitGroup, store entities.Store[*DeeplyNestedLargeStruct]) {
+				defer wg.Done()
+				for j := 0; j < numOperations; j++ {
+					key := int64(rand.Intn(maxKey))
+					store.Put(key, &large)
+				}
+			},
+			writer: func(wg *sync.WaitGroup, store entities.Store[*DeeplyNestedLargeStruct]) {
+				defer wg.Done()
+				for j := 0; j < numOperations; j++ {
+					key := int64(rand.Intn(maxKey))
+					store.Get(key)
+				}
+			},
+		},
+		{
+			storeName: "HaxMapStore",
+			store:     NewHaxMapStore[*DeeplyNestedLargeStruct](numOperations),
 			reader: func(wg *sync.WaitGroup, store entities.Store[*DeeplyNestedLargeStruct]) {
 				defer wg.Done()
 				for j := 0; j < numOperations; j++ {

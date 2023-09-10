@@ -1,4 +1,4 @@
 {
-    "go.testTimeout": "100s",
+    "go.testTimeout": "500s",
     
 }
